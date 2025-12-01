@@ -22,11 +22,15 @@ The portfolio is **directly based on the 13F filings of Himalaya Capital Managem
   - **React Native** as the primary technology stack.  
   - Production targets: **iOS** and **Android** only.  
   - During development, a **Web build** (e.g., using `react-native-web`) may be used for faster iteration and internal testing, but the **final product is mobile-only**.
+- **Pricing (initial idea)**:  
+  - One-time purchase in the range of **EUR/USD 6.99**, with **no subscription**.  
+  - Price should feel low enough to be an easy decision while still signaling seriousness and covering operating costs.
 - **Functionality**:
   - **Read-only recommendations**.  
   - No trading, no broker integrations, no portfolio tracking.
   - Users **cannot input their own holdings**.
   - Everyone sees the **same reference portfolio** and its **history**.
+  - The app should send a **quarterly notification** when a new reference portfolio is available, so users can wait and relax between updates instead of checking manually.
 
 ### 4. Portfolio Definition
 
@@ -55,6 +59,10 @@ For each quarter, Timberline should provide:
     - Added stocks.
     - Removed stocks.
     - Any major change in emphasis (if needed in future versions).
+   - A concise explanation of **position-level changes** in plain language, for example:
+     - “Increased Apple by ~30%.”
+     - “Exited Amazon completely.”
+   - The app should highlight these changes clearly so users can see at a glance what was bought more of, what was reduced, and what was sold.
   - Wording stays **simple and non-technical**.
 
 - **Optional plain-language notes (future decision)**:
