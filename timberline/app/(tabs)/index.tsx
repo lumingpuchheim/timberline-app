@@ -94,17 +94,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   titleText: {
-    color: '#1f2937', // deep slate / trustworthy dark
+    // Warm, timber-like brown for the main title
+    color: '#5b3410',
   },
   subtitleText: {
-    color: '#4b5563',
+    color: '#7c4a21',
   },
   section: {
     gap: 8,
     marginBottom: 16,
   },
   sectionTitle: {
-    color: '#111827',
+    // Slightly lighter brown for section headings
+    color: '#6b3b16',
   },
   row: {
     flexDirection: 'row',
