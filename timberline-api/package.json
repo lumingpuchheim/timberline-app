@@ -12,6 +12,7 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn api/server.ts"
+    "dev": "ts-node-dev --respawn api/server.ts",
+    "update:himalaya": "ts-node-dev --transpile-only scripts/update-himalaya.ts"
   }
 }
