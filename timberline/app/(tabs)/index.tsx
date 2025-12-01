@@ -7,6 +7,11 @@ import { useHimalayaLatestPositions } from '@/hooks/use-himalaya-positions';
 export default function HomeScreen() {
   const positionsState = useHimalayaLatestPositions();
 
+  const topPositions =
+    positionsState.status === 'success'
+      ? positionsState.positions.slice(0, 6)
+      : [];
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -19,7 +24,7 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
-        <ThemedView style={styles.section}>
+        <ThemedView style={[styles.section, styles.firstSection]}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Why this portfolio
           </ThemedText>
@@ -77,15 +82,19 @@ export default function HomeScreen() {
               Unable to load positions right now. Please check your connection and try again later.
             </ThemedText>
           )}
-          {positionsState.status === 'success' &&
-            positionsState.positions.map((p) => (
-              <ThemedView key={p.symbol} style={styles.row}>
-                <ThemedText type="defaultSemiBold" style={styles.rowLabel}>
-                  {p.symbol} – {p.issuer}
-                </ThemedText>
-                <ThemedText style={styles.rowValue}>{p.percentage}</ThemedText>
-              </ThemedView>
-            ))}
+          {positionsState.status === 'success' && (
+            <ThemedView style={styles.grid}>
+              {topPositions.map((p) => (
+                <ThemedView key={p.symbol} style={styles.tile}>
+                  <ThemedText type="defaultSemiBold" style={styles.symbolText}>
+                    {p.symbol}
+                  </ThemedText>
+                  <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
+                  <ThemedText style={styles.rowValue}>{p.percentage}</ThemedText>
+                </ThemedView>
+              ))}
+            </ThemedView>
+          )}
         </ThemedView>
 
         <ThemedView style={styles.footer}>
@@ -126,6 +135,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
+  firstSection: {
+    marginBottom: 32,
+  },
   sectionTitle: {
     // Slightly lighter brown for section headings
     color: '#6b3b16',
@@ -139,20 +151,34 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontSize: 12,
   },
-  row: {
+  grid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
+    flexWrap: 'wrap',
     gap: 12,
+    marginTop: 8,
   },
-  rowLabel: {
-    flex: 1,
+  tile: {
+    width: '48%',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    gap: 2,
+  },
+  symbolText: {
+    color: '#111827',
   },
   rowValue: {
     minWidth: 64,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
+    color: '#14532d',
+    marginTop: 2,
+  },
+  issuerText: {
+    fontSize: 12,
+    color: '#4b5563',
   },
   footer: {
     marginTop: 12,
