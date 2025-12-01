@@ -1,6 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useHimalayaLatestPositions } from '@/hooks/use-himalaya-positions';
@@ -9,73 +8,103 @@ export default function HomeScreen() {
   const positionsState = useHimalayaLatestPositions();
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Timberline</ThemedText>
-        <ThemedText>Invest like Buffett, without the noise.</ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">📈 Investment approach</ThemedText>
-        <ThemedText>
-          Data-driven value investing focused on business quality, long-term growth, and sensible
-          prices. Timberline mirrors the disclosed holdings of Himalaya Capital Management LLC (Li
-          Lu) and applies classic Buffett-style value investing principles.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">📊 Key philosophy</ThemedText>
-        <ThemedText>
-          • Long-term investment – think in years and decades, not days.{'\n'}
-          • Outstanding growth – strong, durable businesses with room to compound.{'\n'}
-          • Value investing – focus on intrinsic value and a margin of safety instead of chasing
-          short-term market moves.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">🧭 What you see in Timberline</ThemedText>
-        <ThemedText>
-          A small, concentrated U.S. stock reference portfolio, updated each quarter to match the
-          latest Himalaya 13F filing. You see the current holdings and how they changed since the
-          last quarter—no trading tools, no charts, and no financial jargon, just a clear reference
-          for patient, value-focused investing.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">Latest Himalaya 13F positions</ThemedText>
-        {positionsState.status === 'loading' && (
-          <ThemedText>Loading latest positions…</ThemedText>
-        )}
-        {positionsState.status === 'error' && (
-          <ThemedText>
-            Unable to load positions right now. Please check your connection and try again later.
+    <ThemedView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText type="title" style={styles.titleText}>
+            Timberline
           </ThemedText>
-        )}
-        {positionsState.status === 'success' &&
-          positionsState.positions.map((p) => (
-            <ThemedView key={p.symbol} style={styles.row}>
-              <ThemedText type="defaultSemiBold">
-                {p.symbol} – {p.issuer}
-              </ThemedText>
-              <ThemedText>{p.percentage}</ThemedText>
-            </ThemedView>
-          ))}
-      </ThemedView>
-    </ParallaxScrollView>
+          <ThemedText style={styles.subtitleText}>
+            Invest like Buffett, without the noise.
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            📈 Why this portfolio
+          </ThemedText>
+          <ThemedText>
+            Timberline mirrors the disclosed holdings of Himalaya Capital Management LLC, run by Li
+            Lu, whom Charlie Munger trusted to manage his family&apos;s money. It is a real-money,
+            long-term value portfolio, not a theoretical model.
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            📊 How it tries to make money
+          </ThemedText>
+          <ThemedText>
+            • Focus on quality – businesses with strong balance sheets, durable cash flows, and
+            rational, honest management.{'\n'}
+            • Value discipline – paying sensible prices with a margin of safety instead of chasing
+            short-term moves.{'\n'}
+            • Long-term compounding – thinking in years and decades, letting a few good companies do
+            the heavy lifting.
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            🧭 What this means for you
+          </ThemedText>
+          <ThemedText>
+            You see a small, concentrated U.S. stock reference portfolio with very few changes over
+            time. The idea is to own a handful of carefully chosen businesses, avoid constant
+            handovers, and give yourself room to sit still instead of reacting to market noise.
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            Latest Himalaya 13F positions
+          </ThemedText>
+          {positionsState.status === 'loading' && (
+            <ThemedText>Loading latest positions…</ThemedText>
+          )}
+          {positionsState.status === 'error' && (
+            <ThemedText>
+              Unable to load positions right now. Please check your connection and try again later.
+            </ThemedText>
+          )}
+          {positionsState.status === 'success' &&
+            positionsState.positions.map((p) => (
+              <ThemedView key={p.symbol} style={styles.row}>
+                <ThemedText type="defaultSemiBold">
+                  {p.symbol} – {p.issuer}
+                </ThemedText>
+                <ThemedText>{p.percentage}</ThemedText>
+              </ThemedView>
+            ))}
+        </ThemedView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  content: {
+    padding: 24,
+    gap: 16,
+  },
   titleContainer: {
     marginBottom: 16,
+  },
+  titleText: {
+    color: '#1f2937', // deep slate / trustworthy dark
+  },
+  subtitleText: {
+    color: '#4b5563',
   },
   section: {
     gap: 8,
     marginBottom: 16,
+  },
+  sectionTitle: {
+    color: '#111827',
   },
   row: {
     flexDirection: 'row',
