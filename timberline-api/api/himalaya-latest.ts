@@ -1,5 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 type Position = {
   symbol: string;
   issuer: string;
@@ -97,19 +95,19 @@ async function fetchLatestPositions(): Promise<Position[]> {
   return parseHoldingsFromHtml(html);
 }
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+// Use untyped request/response to avoid needing @vercel/node types locally.
+export default async function handler(req: any, res: any) {
   try {
     const positions = await fetchLatestPositions();
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.status(200).json(positions);
-  } catch (err) {
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : 'Failed to load Himalaya positions';
     console.error('Failed to load Himalaya positions', err);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(500).json({ error: 'Failed to load positions' });
+    res.status(500).json({ error: message });
   }
 }
 
