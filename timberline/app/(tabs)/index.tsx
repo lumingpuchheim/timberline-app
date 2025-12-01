@@ -1,78 +1,69 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useHimalayaLatestPositions } from '@/hooks/use-himalaya-positions';
 
 export default function HomeScreen() {
+  const positionsState = useHimalayaLatestPositions();
+
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">Timberline</ThemedText>
+        <ThemedText>Invest like Buffett, without the noise.</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle">📈 Investment approach</ThemedText>
         <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+          Data-driven value investing focused on business quality, long-term growth, and sensible
+          prices. Timberline mirrors the disclosed holdings of Himalaya Capital Management LLC (Li
+          Lu) and applies classic Buffett-style value investing principles.
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle">📊 Key philosophy</ThemedText>
         <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+          • Long-term investment – think in years and decades, not days.{'\n'}
+          • Outstanding growth – strong, durable businesses with room to compound.{'\n'}
+          • Value investing – focus on intrinsic value and a margin of safety instead of chasing
+          short-term market moves.
         </ThemedText>
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle">🧭 What you see in Timberline</ThemedText>
+        <ThemedText>
+          A small, concentrated U.S. stock reference portfolio, updated each quarter to match the
+          latest Himalaya 13F filing. You see the current holdings and how they changed since the
+          last quarter—no trading tools, no charts, and no financial jargon, just a clear reference
+          for patient, value-focused investing.
+        </ThemedText>
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle">Latest Himalaya 13F positions</ThemedText>
+        {positionsState.status === 'loading' && (
+          <ThemedText>Loading latest positions…</ThemedText>
+        )}
+        {positionsState.status === 'error' && (
+          <ThemedText>
+            Unable to load positions right now. Please check your connection and try again later.
+          </ThemedText>
+        )}
+        {positionsState.status === 'success' &&
+          positionsState.positions.map((p) => (
+            <ThemedView key={p.symbol} style={styles.row}>
+              <ThemedText type="defaultSemiBold">
+                {p.symbol} – {p.issuer}
+              </ThemedText>
+              <ThemedText>{p.percentage}</ThemedText>
+            </ThemedView>
+          ))}
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -80,19 +71,16 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   titleContainer: {
+    marginBottom: 16,
+  },
+  section: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  row: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+    paddingVertical: 4,
   },
 });
