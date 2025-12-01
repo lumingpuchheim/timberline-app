@@ -21,7 +21,7 @@ export default function HomeScreen() {
 
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            📈 Why this portfolio
+            Why this portfolio
           </ThemedText>
           <ThemedText>
             Timberline mirrors the disclosed holdings of Himalaya Capital Management LLC, run by Li
@@ -30,9 +30,11 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
+        <ThemedView style={styles.divider} />
+
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            📊 How it tries to make money
+            How it tries to make money
           </ThemedText>
           <ThemedText>
             • Focus on quality – businesses with strong balance sheets, durable cash flows, and
@@ -44,9 +46,11 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
+        <ThemedView style={styles.divider} />
+
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            🧭 How you can use this as a private investor
+            How you can use this as a private investor
           </ThemedText>
           <ThemedText>
             Use Timberline as a simple, stable reference: a short list of businesses that a
@@ -56,9 +60,14 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
+        <ThemedView style={styles.divider} />
+
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Latest Himalaya 13F positions
+          </ThemedText>
+          <ThemedText style={styles.asOfText}>
+            Latest disclosed holdings based on Himalaya Capital&apos;s quarterly 13F filing.
           </ThemedText>
           {positionsState.status === 'loading' && (
             <ThemedText>Loading latest positions…</ThemedText>
@@ -71,12 +80,22 @@ export default function HomeScreen() {
           {positionsState.status === 'success' &&
             positionsState.positions.map((p) => (
               <ThemedView key={p.symbol} style={styles.row}>
-                <ThemedText type="defaultSemiBold">
+                <ThemedText type="defaultSemiBold" style={styles.rowLabel}>
                   {p.symbol} – {p.issuer}
                 </ThemedText>
-                <ThemedText>{p.percentage}</ThemedText>
+                <ThemedText style={styles.rowValue}>{p.percentage}</ThemedText>
               </ThemedView>
             ))}
+        </ThemedView>
+
+        <ThemedView style={styles.footer}>
+          <ThemedText style={styles.footerText}>
+            Timberline is a reference portfolio, not personalized investment advice. Always consider
+            your own situation before acting.
+          </ThemedText>
+          <ThemedText style={styles.footerText}>
+            Data source: public 13F filings for Himalaya Capital, aggregated via 13f.info.
+          </ThemedText>
         </ThemedView>
       </ScrollView>
     </ThemedView>
@@ -88,8 +107,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 24,
-    gap: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    gap: 20,
   },
   titleContainer: {
     marginBottom: 16,
@@ -97,6 +117,7 @@ const styles = StyleSheet.create({
   titleText: {
     // Warm, timber-like brown for the main title
     color: '#5b3410',
+    fontFamily: 'serif',
   },
   subtitleText: {
     color: '#7c4a21',
@@ -108,11 +129,37 @@ const styles = StyleSheet.create({
   sectionTitle: {
     // Slightly lighter brown for section headings
     color: '#6b3b16',
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  asOfText: {
+    color: '#6b7280',
+    fontSize: 12,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 4,
+    gap: 12,
+  },
+  rowLabel: {
+    flex: 1,
+  },
+  rowValue: {
+    minWidth: 64,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+  footer: {
+    marginTop: 12,
+    gap: 4,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#6b7280',
   },
 });
