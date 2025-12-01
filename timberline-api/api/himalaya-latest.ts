@@ -6,96 +6,87 @@ type Position = {
 
 const MANAGER_URL =
   'https://13f.info/manager/0001709323-himalaya-capital-management-llc';
+const BASE_URL = 'https://13f.info';
 
-async function fetchLatestFilingUrl(): Promise<string> {
-  const res = await fetch(MANAGER_URL);
+async function httpGet(url: string): Promise<Response> {
+  const res = await fetch(url, {
+    headers: {
+      Accept: 'application/json,text/html,*/*',
+    },
+  });
   if (!res.ok) {
-    throw new Error(`Failed to load manager page (${res.status})`);
+    throw new Error(`Request failed (${res.status}) for ${url}`);
   }
-  const html = await res.text();
-
-  // Pick the first 13F filing link from the manager page
-  const match = html.match(/href="(\/13f\/[^"]+)"/i);
-  if (!match) {
-    throw new Error('Could not find latest 13F filing link');
-  }
-
-  const path = match[1];
-  return new URL(path, MANAGER_URL).toString();
+  return res;
 }
 
-function parseHoldingsFromHtml(html: string): Position[] {
-  // Very simple parser: first table that looks like holdings
-  const tableMatch = html.match(/<table[\s\S]*?<\/table>/i);
+async function fetchLatestFilingPath(): Promise<string> {
+  const res = await httpGet(MANAGER_URL);
+  const html = await res.text();
+
+  // First 13F filing link on the manager page.
+  const match = html.match(/href="(\/13f\/[^"]+)"/i);
+  if (!match) {
+    throw new Error('Could not find latest 13F filing link on 13f.info');
+  }
+  return match[1];
+}
+
+async function fetchDataUrlForLatestFiling(): Promise<string> {
+  const filingPath = await fetchLatestFilingPath();
+  const filingUrl = `${BASE_URL}${filingPath}`;
+
+  const res = await httpGet(filingUrl);
+  const html = await res.text();
+
+  const tableMatch = html.match(
+    /<table[^>]+id="filingAggregated"[^>]*data-url="([^"]+)"/i,
+  );
   if (!tableMatch) {
-    throw new Error('Could not find holdings table');
+    throw new Error('Could not find data-url for filingAggregated table');
   }
 
-  const tableHtml = tableMatch[0];
-  const rows = tableHtml.split(/<tr[\s\S]*?>/i).slice(1);
-  if (rows.length === 0) {
-    throw new Error('Holdings table has no rows');
-  }
+  return tableMatch[1];
+}
 
-  // Header row
-  const headerCells = rows[0].split(/<t[hd][\s\S]*?>/i).slice(1);
-  const headers = headerCells.map((cell) =>
-    cell
-      .replace(/<\/t[hd]>.*/i, '')
-      .replace(/<[^>]+>/g, '')
-      .trim()
-      .toLowerCase(),
-  );
+export async function fetchLatestPositions(): Promise<Position[]> {
+  const dataPath = await fetchDataUrlForLatestFiling();
+  const dataUrl = dataPath.startsWith('http')
+    ? dataPath
+    : `${BASE_URL}${dataPath}`;
 
-  const symbolIndex = headers.findIndex((h) => h.includes('symbol'));
-  const issuerIndex =
-    headers.findIndex((h) => h.includes('issuer')) !== -1
-      ? headers.findIndex((h) => h.includes('issuer'))
-      : headers.findIndex((h) => h.includes('company'));
-  const percentIndex = headers.findIndex(
-    (h) => h.includes('%') || h.includes('percent'),
-  );
+  const res = await httpGet(dataUrl);
+  const json: any = await res.json();
 
-  if (symbolIndex === -1 || issuerIndex === -1 || percentIndex === -1) {
-    throw new Error('Could not locate Symbol/Issuer/Percent columns');
-  }
+  // We don't know the exact JSON shape; try to handle common patterns.
+  // If json.data is an array of rows where each row is an array,
+  // assume [sym, issuer, _, _, _, pct, ...].
+  const rows: any[] = Array.isArray(json?.data) ? json.data : [];
 
-  const positions: Position[] = [];
+  const positions: Position[] = rows.map((row: any) => {
+    if (Array.isArray(row)) {
+      const sym = String(row[0] ?? '').trim();
+      const issuer = String(row[1] ?? '').trim();
+      const pct = String(row[5] ?? '').trim();
+      return {
+        symbol: sym,
+        issuer,
+        percentage: pct,
+      };
+    }
 
-  for (let i = 1; i < rows.length; i += 1) {
-    const row = rows[i];
-    const cells = row.split(/<t[hd][\s\S]*?>/i).slice(1);
-    if (cells.length === 0) continue;
-
-    const extractText = (cell: string) =>
-      cell
-        .replace(/<\/t[hd]>.*/i, '')
-        .replace(/<[^>]+>/g, '')
-        .trim();
-
-    const symbol = extractText(cells[symbolIndex] ?? '');
-    const issuer = extractText(cells[issuerIndex] ?? '');
-    const percentage = extractText(cells[percentIndex] ?? '');
-
-    if (!symbol) continue;
-
-    positions.push({ symbol, issuer, percentage });
-  }
+    // Fallback if rows are objects with keys.
+    return {
+      symbol: String(row.sym ?? row.symbol ?? '').trim(),
+      issuer: String(row.issuer_name ?? row.issuer ?? '').trim(),
+      percentage: String(row.pct ?? row.percent ?? row.percentage ?? '').trim(),
+    };
+  });
 
   return positions;
 }
 
-async function fetchLatestPositions(): Promise<Position[]> {
-  const filingUrl = await fetchLatestFilingUrl();
-  const res = await fetch(filingUrl);
-  if (!res.ok) {
-    throw new Error(`Failed to load latest filing (${res.status})`);
-  }
-  const html = await res.text();
-  return parseHoldingsFromHtml(html);
-}
-
-// Use untyped request/response to avoid needing @vercel/node types locally.
+// Default handler kept for potential serverless usage, not used by local Express server.
 export default async function handler(req: any, res: any) {
   try {
     const positions = await fetchLatestPositions();
@@ -110,5 +101,4 @@ export default async function handler(req: any, res: any) {
     res.status(500).json({ error: message });
   }
 }
-
 
