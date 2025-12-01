@@ -1,0 +1,48 @@
+# Node & React Native dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Metro / React Native
+.metro-cache/
+.expo/
+dist/
+web-build/
+
+# Logs
+logs/
+*.log
+log.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.iml
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/.cxx/
+
+# iOS
+ios/Pods/
+ios/build/
+ios/DerivedData/
+ios/*.xcworkspace
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.swp
+*.swo
+
