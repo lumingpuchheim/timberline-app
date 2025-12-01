@@ -46,12 +46,13 @@ export default function HomeScreen() {
 
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            🧭 What this means for you
+            🧭 How you can use this as a private investor
           </ThemedText>
           <ThemedText>
-            You see a small, concentrated U.S. stock reference portfolio with very few changes over
-            time. The idea is to own a handful of carefully chosen businesses, avoid constant
-            handovers, and give yourself room to sit still instead of reacting to market noise.
+            Use Timberline as a simple, stable reference: a short list of businesses that a
+            long-term value investor actually owns. You can compare your own ideas to this list,
+            borrow from it when you don&apos;t have time to research, and avoid the stress of
+            constant trading by checking in only when the portfolio updates each quarter.
           </ThemedText>
         </ThemedView>
 
