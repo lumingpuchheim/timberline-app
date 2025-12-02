@@ -4,6 +4,7 @@ export type HimalayaPosition = {
   symbol: string;
   issuer: string;
   percentage: string;
+  valueThousands?: number;
 };
 
 type Snapshot = {

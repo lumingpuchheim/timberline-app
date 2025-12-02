@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "outDir": "dist"
   },
-  "include": ["api/**/*", "global.d.ts"]
+  "include": ["api/**/*", "scripts/**/*", "global.d.ts"]
 }
 
 

@@ -5,6 +5,7 @@ type Position = {
   symbol: string;
   issuer: string;
   percentage: string;
+  valueThousands?: number;
 };
 
 const MANAGER_URL =
@@ -83,6 +84,9 @@ async function fetchPositionsFrom13fInfo(): Promise<{
         symbol: sym,
         issuer,
         percentage: pct,
+        valueThousands: Number.isFinite(valueThousandsRaw)
+          ? valueThousandsRaw
+          : undefined,
       };
     }
 

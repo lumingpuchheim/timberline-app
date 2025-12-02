@@ -30,6 +30,20 @@ export default function HomeScreen() {
     return `$${dollars.toLocaleString()}`;
   };
 
+  const derivePositionValueThousands = (
+    p: { percentage: string; valueThousands?: number },
+    totalThousands?: number,
+  ) => {
+    if (p.valueThousands && Number.isFinite(p.valueThousands)) {
+      return p.valueThousands;
+    }
+    const pctNumber = parseFloat(p.percentage.replace('%', '').trim());
+    if (!totalThousands || !Number.isFinite(totalThousands) || !Number.isFinite(pctNumber)) {
+      return undefined;
+    }
+    return (totalThousands * pctNumber) / 100;
+  };
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -109,17 +123,28 @@ export default function HomeScreen() {
           )}
           {positionsState.status === 'success' && (
             <ThemedView style={styles.grid}>
-              {topPositions.map((p) => (
-                <ThemedView key={p.symbol} style={styles.tile}>
-                  <ThemedText type="defaultSemiBold" style={styles.symbolText}>
-                    {p.symbol}
-                  </ThemedText>
-                  <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
-                  <ThemedText style={styles.rowValue}>
-                    {formatPercentage(p.percentage)}
-                  </ThemedText>
-                </ThemedView>
-              ))}
+              {topPositions.map((p) => {
+                const valueThousands = derivePositionValueThousands(
+                  p,
+                  positionsState.totalValueThousands,
+                );
+                return (
+                  <ThemedView key={p.symbol} style={styles.tile}>
+                    <ThemedText type="defaultSemiBold" style={styles.symbolText}>
+                      {p.symbol}
+                    </ThemedText>
+                    <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
+                    <ThemedText style={styles.rowValue}>
+                      {formatPercentage(p.percentage)}
+                    </ThemedText>
+                    {typeof valueThousands === 'number' && (
+                      <ThemedText style={styles.valueText}>
+                        {formatTotalValue(valueThousands)}
+                      </ThemedText>
+                    )}
+                  </ThemedView>
+                );
+              })}
             </ThemedView>
           )}
         </ThemedView>
@@ -208,6 +233,11 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     color: '#14532d',
     marginTop: 2,
+  },
+  valueText: {
+    textAlign: 'right',
+    fontSize: 12,
+    color: '#374151',
   },
   issuerText: {
     fontSize: 12,

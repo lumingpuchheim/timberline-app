@@ -5,6 +5,7 @@ type Position = {
   symbol: string;
   issuer: string;
   percentage: string;
+  valueThousands?: number;
 };
 
 type Snapshot = {
