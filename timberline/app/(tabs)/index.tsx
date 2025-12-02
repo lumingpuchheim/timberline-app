@@ -12,6 +12,12 @@ export default function HomeScreen() {
       ? positionsState.positions.slice(0, 6)
       : [];
 
+  const formatPercentage = (value: string) => {
+    const trimmed = value?.toString().trim();
+    if (!trimmed) return '';
+    return trimmed.endsWith('%') ? trimmed : `${trimmed}%`;
+  };
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -90,7 +96,9 @@ export default function HomeScreen() {
                     {p.symbol}
                   </ThemedText>
                   <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
-                  <ThemedText style={styles.rowValue}>{p.percentage}</ThemedText>
+                  <ThemedText style={styles.rowValue}>
+                    {formatPercentage(p.percentage)}
+                  </ThemedText>
                 </ThemedView>
               ))}
             </ThemedView>
