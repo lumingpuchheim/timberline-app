@@ -36,11 +36,34 @@ async function fetchFilingPaths(): Promise<string[]> {
   const html = await res.text();
 
   const matches = [...html.matchAll(/href="(\/13f\/[^"]+)"/gi)];
-  const paths = matches.map((m) => m[1]);
-  if (paths.length === 0) {
+  const seen = new Set<string>();
+  const candidates: { path: string; year: number; quarter: number }[] = [];
+
+  for (const m of matches) {
+    const path = m[1];
+    if (seen.has(path)) continue;
+    seen.add(path);
+
+    const infoMatch = path.match(/-q([1-4])-(\d{4})$/i);
+    if (!infoMatch) continue;
+
+    const quarter = Number(infoMatch[1]);
+    const year = Number(infoMatch[2]);
+    if (!Number.isFinite(quarter) || !Number.isFinite(year)) continue;
+
+    candidates.push({ path, year, quarter });
+  }
+
+  if (candidates.length === 0) {
     throw new Error('Could not find any 13F filing links on 13f.info');
   }
-  return paths;
+
+  candidates.sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return b.quarter - a.quarter;
+  });
+
+  return candidates.map((c) => c.path);
 }
 
 async function fetchDataUrlForFiling(filingPath: string): Promise<string> {
