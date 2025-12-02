@@ -1,11 +1,22 @@
 import { ScrollView, StyleSheet } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useState } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useHimalayaLatestPositions } from '@/hooks/use-himalaya-positions';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
 export default function HomeScreen() {
   const positionsState = useHimalayaLatestPositions();
+  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
   const topPositions =
     positionsState.status === 'success'
@@ -61,10 +72,21 @@ export default function HomeScreen() {
     );
   };
 
+  useEffect(() => {
+    (async () => {
+      const settings = await Notifications.getPermissionsAsync();
+      if (!settings.granted) {
+        await Notifications.requestPermissionsAsync();
+      }
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      setExpoPushToken(tokenData.data);
+    })();
+  }, []);
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedView style={styles.titleContainer}>
+      <ThemedView style={styles.titleContainer}>
           <ThemedText type="title" style={styles.titleText}>
             Timberline
           </ThemedText>
@@ -82,7 +104,7 @@ export default function HomeScreen() {
             conflicting opinions. Most people either don&apos;t invest at all or end up trading too
             much and underperforming.
           </ThemedText>
-        </ThemedView>
+      </ThemedView>
 
         <ThemedView style={styles.divider} />
 
@@ -90,7 +112,7 @@ export default function HomeScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             What Timberline gives you
           </ThemedText>
-          <ThemedText>
+        <ThemedText>
             Charlie Munger could have picked anyone in the world to invest his family&apos;s
             savings. He chose Li Lu. Timberline mirrors the disclosed holdings of Himalaya Capital
             Management LLC, letting you see one concentrated, long-term value portfolio instead of a
@@ -100,8 +122,8 @@ export default function HomeScreen() {
             • Save time – no daily research or screening; check in once per quarter.{'\n'}
             • Save energy – ignore noise and copy a real investor&apos;s patient decisions.{'\n'}
             • Stay invested – a simple reference makes it easier to sit still through volatility.
-          </ThemedText>
-        </ThemedView>
+        </ThemedText>
+      </ThemedView>
 
         <ThemedView style={styles.divider} />
 
@@ -109,12 +131,12 @@ export default function HomeScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             How to use this as a private investor
           </ThemedText>
-          <ThemedText>
+        <ThemedText>
             Use Timberline as your quiet reference: compare your own holdings to this list, borrow
             from it when you don&apos;t have time to research, and let the quarterly change summary
             guide adjustments instead of chasing short-term moves.
-          </ThemedText>
-        </ThemedView>
+        </ThemedText>
+      </ThemedView>
 
         <ThemedView style={styles.divider} />
 
@@ -136,7 +158,7 @@ export default function HomeScreen() {
             <ThemedText>Loading latest positions…</ThemedText>
           )}
           {positionsState.status === 'error' && (
-            <ThemedText>
+        <ThemedText>
               Unable to load positions right now. Please check your connection and try again later.
             </ThemedText>
           )}
@@ -258,8 +280,13 @@ export default function HomeScreen() {
           </ThemedText>
           <ThemedText style={styles.footerText}>
             Data source: public 13F filings for Himalaya Capital, aggregated via 13f.info.
-          </ThemedText>
-        </ThemedView>
+        </ThemedText>
+          {expoPushToken && (
+            <ThemedText style={styles.footerText}>
+              Expo push token (for testing): {expoPushToken}
+            </ThemedText>
+          )}
+      </ThemedView>
       </ScrollView>
     </ThemedView>
   );
