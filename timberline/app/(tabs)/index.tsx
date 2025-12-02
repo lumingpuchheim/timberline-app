@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet } from 'react-native';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 
@@ -9,6 +9,8 @@ import { useHimalayaLatestPositions } from '@/hooks/use-himalaya-positions';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
   }),
@@ -73,13 +75,22 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    // Notifications are only supported on native platforms; guard and be defensive.
+    if (Platform.OS === 'web') {
+      return;
+    }
+
     (async () => {
-      const settings = await Notifications.getPermissionsAsync();
-      if (!settings.granted) {
-        await Notifications.requestPermissionsAsync();
+      try {
+        const settings = await Notifications.getPermissionsAsync();
+        if (!settings.granted) {
+          await Notifications.requestPermissionsAsync();
+        }
+        const tokenData = await Notifications.getExpoPushTokenAsync();
+        setExpoPushToken(tokenData.data);
+      } catch (e) {
+        console.warn('Failed to initialize notifications', e);
       }
-      const tokenData = await Notifications.getExpoPushTokenAsync();
-      setExpoPushToken(tokenData.data);
     })();
   }, []);
 
@@ -280,13 +291,8 @@ export default function HomeScreen() {
           </ThemedText>
           <ThemedText style={styles.footerText}>
             Data source: public 13F filings for Himalaya Capital, aggregated via 13f.info.
-        </ThemedText>
-          {expoPushToken && (
-            <ThemedText style={styles.footerText}>
-              Expo push token (for testing): {expoPushToken}
-            </ThemedText>
-          )}
-      </ThemedView>
+          </ThemedText>
+        </ThemedView>
       </ScrollView>
     </ThemedView>
   );
