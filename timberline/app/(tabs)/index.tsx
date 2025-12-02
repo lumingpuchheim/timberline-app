@@ -91,9 +91,10 @@ export default function HomeScreen() {
             What Timberline gives you
           </ThemedText>
           <ThemedText>
-            Timberline mirrors the disclosed holdings of Himalaya Capital Management LLC, run by Li
-            Lu, whom Charlie Munger trusted to manage his family&apos;s money. You see one
-            concentrated, long-term value portfolio instead of a feed of ideas.
+            Charlie Munger could have picked anyone in the world to invest his family&apos;s
+            savings. He chose Li Lu. Timberline mirrors the disclosed holdings of Himalaya Capital
+            Management LLC, letting you see one concentrated, long-term value portfolio instead of a
+            feed of ideas.
           </ThemedText>
           <ThemedText style={styles.bulletText}>
             • Save time – no daily research or screening; check in once per quarter.{'\n'}
