@@ -18,6 +18,18 @@ export default function HomeScreen() {
     return trimmed.endsWith('%') ? trimmed : `${trimmed}%`;
   };
 
+  const formatTotalValue = (thousands?: number) => {
+    if (!thousands || !Number.isFinite(thousands)) return '';
+    const dollars = thousands * 1000;
+    if (dollars >= 1e9) {
+      return `$${(dollars / 1e9).toFixed(2)} B`;
+    }
+    if (dollars >= 1e6) {
+      return `$${(dollars / 1e6).toFixed(2)} M`;
+    }
+    return `$${dollars.toLocaleString()}`;
+  };
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -80,6 +92,13 @@ export default function HomeScreen() {
           <ThemedText style={styles.asOfText}>
             Latest disclosed holdings based on Himalaya Capital&apos;s quarterly 13F filing.
           </ThemedText>
+          {positionsState.status === 'success' &&
+            typeof positionsState.totalValueThousands === 'number' && (
+              <ThemedText style={styles.totalValueText}>
+                Total disclosed value:{' '}
+                {formatTotalValue(positionsState.totalValueThousands)}
+              </ThemedText>
+            )}
           {positionsState.status === 'loading' && (
             <ThemedText>Loading latest positions…</ThemedText>
           )}
@@ -158,6 +177,12 @@ const styles = StyleSheet.create({
   asOfText: {
     color: '#6b7280',
     fontSize: 12,
+  },
+  totalValueText: {
+    color: '#374151',
+    fontSize: 13,
+    marginTop: 4,
+    fontWeight: '500',
   },
   grid: {
     flexDirection: 'row',

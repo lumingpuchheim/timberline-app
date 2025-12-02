@@ -6,15 +6,20 @@ export type HimalayaPosition = {
   percentage: string;
 };
 
+type Snapshot = {
+  positions: HimalayaPosition[];
+  totalValueThousands?: number;
+};
+
 type State =
   | { status: 'idle' | 'loading' }
-  | { status: 'success'; positions: HimalayaPosition[] }
+  | { status: 'success'; positions: HimalayaPosition[]; totalValueThousands?: number }
   | { status: 'error'; error: string };
 
 const API_URL =
   'https://timberline-app-emj2.vercel.app/api/himalaya-latest';
 
-async function fetchLatestPositions(): Promise<HimalayaPosition[]> {
+async function fetchLatestPositions(): Promise<Snapshot> {
   const res = await fetch(API_URL);
   if (!res.ok) {
     let details = '';
@@ -29,7 +34,7 @@ async function fetchLatestPositions(): Promise<HimalayaPosition[]> {
     throw new Error(`Failed to load latest positions (${res.status})${details}`);
   }
   const data = await res.json();
-  return data as HimalayaPosition[];
+  return data as Snapshot;
 }
 
 export function useHimalayaLatestPositions(): State {
@@ -40,9 +45,13 @@ export function useHimalayaLatestPositions(): State {
     setState({ status: 'loading' });
 
     fetchLatestPositions()
-      .then((positions) => {
+      .then((snapshot) => {
         if (cancelled) return;
-        setState({ status: 'success', positions });
+        setState({
+          status: 'success',
+          positions: snapshot.positions,
+          totalValueThousands: snapshot.totalValueThousands,
+        });
       })
       .catch((err: unknown) => {
         if (cancelled) return;

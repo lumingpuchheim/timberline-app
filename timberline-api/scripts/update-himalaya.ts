@@ -52,7 +52,10 @@ async function fetchDataUrlForLatestFiling(): Promise<string> {
   return tableMatch[1];
 }
 
-async function fetchPositionsFrom13fInfo(): Promise<Position[]> {
+async function fetchPositionsFrom13fInfo(): Promise<{
+  positions: Position[];
+  totalValueThousands?: number;
+}> {
   const dataPath = await fetchDataUrlForLatestFiling();
   const dataUrl = dataPath.startsWith('http')
     ? dataPath
@@ -63,11 +66,19 @@ async function fetchPositionsFrom13fInfo(): Promise<Position[]> {
 
   const rows: any[] = Array.isArray(json?.data) ? json.data : [];
 
+  let totalValueThousands = 0;
+
   const positions: Position[] = rows.map((row: any) => {
     if (Array.isArray(row)) {
       const sym = String(row[0] ?? '').trim();
       const issuer = String(row[1] ?? '').trim();
+      const valueThousandsRaw = Number(String(row[4] ?? '').replace(/,/g, ''));
       const pct = String(row[5] ?? '').trim();
+
+      if (Number.isFinite(valueThousandsRaw)) {
+        totalValueThousands += valueThousandsRaw;
+      }
+
       return {
         symbol: sym,
         issuer,
@@ -82,14 +93,14 @@ async function fetchPositionsFrom13fInfo(): Promise<Position[]> {
     };
   });
 
-  return positions;
+  return { positions, totalValueThousands };
 }
 
 async function main() {
-  const positions = await fetchPositionsFrom13fInfo();
+  const { positions, totalValueThousands } = await fetchPositionsFrom13fInfo();
   await writeFile(
     DATA_FILE,
-    JSON.stringify({ positions }, null, 2),
+    JSON.stringify({ totalValueThousands, positions }, null, 2),
     'utf8',
   );
   console.log(`Saved ${positions.length} positions to ${DATA_FILE}`);

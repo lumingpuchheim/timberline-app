@@ -7,18 +7,23 @@ type Position = {
   percentage: string;
 };
 
+type Snapshot = {
+  positions: Position[];
+  totalValueThousands?: number;
+};
+
 const DATA_FILE = join(__dirname, '..', 'data', 'himalaya-latest.json');
 
-export async function fetchLatestPositions(): Promise<Position[]> {
+export async function fetchLatestSnapshot(): Promise<Snapshot> {
   const raw = await readFile(DATA_FILE, 'utf8');
-  const parsed = JSON.parse(raw) as { positions?: Position[] } | Position[];
+  const parsed = JSON.parse(raw) as Snapshot | Position[];
 
   if (Array.isArray(parsed)) {
-    return parsed;
+    return { positions: parsed };
   }
 
   if (parsed && Array.isArray(parsed.positions)) {
-    return parsed.positions;
+    return parsed;
   }
 
   throw new Error('Invalid data format in himalaya-latest.json');
@@ -27,10 +32,10 @@ export async function fetchLatestPositions(): Promise<Position[]> {
 // Default handler kept for potential serverless usage, not used by local Express server.
 export default async function handler(req: any, res: any) {
   try {
-    const positions = await fetchLatestPositions();
+    const snapshot = await fetchLatestSnapshot();
 
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(200).json(positions);
+    res.status(200).json(snapshot);
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : 'Failed to load Himalaya positions';
