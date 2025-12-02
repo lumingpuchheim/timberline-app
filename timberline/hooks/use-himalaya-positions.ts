@@ -25,11 +25,11 @@ type State =
 
 const API_URL =
   'https://timberline-app-emj2.vercel.app/api/himalaya-latest';
+const API_URL_LAST_QUARTER =
+  'https://timberline-app-emj2.vercel.app/api/himalaya-last-quarter';
 
-const LAST_SNAPSHOT: Snapshot = require('./himalaya-last-quarter.json');
-
-async function fetchLatestPositions(): Promise<Snapshot> {
-  const res = await fetch(API_URL);
+async function fetchSnapshot(url: string): Promise<Snapshot> {
+  const res = await fetch(url);
   if (!res.ok) {
     let details = '';
     try {
@@ -40,7 +40,7 @@ async function fetchLatestPositions(): Promise<Snapshot> {
     } catch {
       // ignore JSON parse errors
     }
-    throw new Error(`Failed to load latest positions (${res.status})${details}`);
+    throw new Error(`Failed to load positions (${res.status})${details}`);
   }
   const data = await res.json();
   return data as Snapshot;
@@ -53,15 +53,18 @@ export function useHimalayaLatestPositions(): State {
     let cancelled = false;
     setState({ status: 'loading' });
 
-    fetchLatestPositions()
-      .then((snapshot) => {
+    Promise.all([
+      fetchSnapshot(API_URL),
+      fetchSnapshot(API_URL_LAST_QUARTER),
+    ])
+      .then(([latest, previous]) => {
         if (cancelled) return;
         setState({
           status: 'success',
-          positions: snapshot.positions,
-          totalValueThousands: snapshot.totalValueThousands,
-          previousPositions: LAST_SNAPSHOT.positions,
-          previousTotalValueThousands: LAST_SNAPSHOT.totalValueThousands,
+          positions: latest.positions,
+          totalValueThousands: latest.totalValueThousands,
+          previousPositions: previous.positions,
+          previousTotalValueThousands: previous.totalValueThousands,
         });
       })
       .catch((err: unknown) => {

@@ -11,7 +11,13 @@ type Position = {
 const MANAGER_URL =
   'https://13f.info/manager/0001709323-himalaya-capital-management-llc';
 const BASE_URL = 'https://13f.info';
-const DATA_FILE = join(__dirname, '..', 'data', 'himalaya-latest.json');
+const LATEST_FILE = join(__dirname, '..', 'data', 'himalaya-latest.json');
+const LAST_QUARTER_FILE = join(
+  __dirname,
+  '..',
+  'data',
+  'himalaya-last-quarter.json',
+);
 
 async function httpGet(url: string): Promise<Response> {
   const res = await fetch(url, {
@@ -25,19 +31,19 @@ async function httpGet(url: string): Promise<Response> {
   return res;
 }
 
-async function fetchLatestFilingPath(): Promise<string> {
+async function fetchFilingPaths(): Promise<string[]> {
   const res = await httpGet(MANAGER_URL);
   const html = await res.text();
 
-  const match = html.match(/href="(\/13f\/[^"]+)"/i);
-  if (!match) {
-    throw new Error('Could not find latest 13F filing link on 13f.info');
+  const matches = [...html.matchAll(/href="(\/13f\/[^"]+)"/gi)];
+  const paths = matches.map((m) => m[1]);
+  if (paths.length === 0) {
+    throw new Error('Could not find any 13F filing links on 13f.info');
   }
-  return match[1];
+  return paths;
 }
 
-async function fetchDataUrlForLatestFiling(): Promise<string> {
-  const filingPath = await fetchLatestFilingPath();
+async function fetchDataUrlForFiling(filingPath: string): Promise<string> {
   const filingUrl = `${BASE_URL}${filingPath}`;
 
   const res = await httpGet(filingUrl);
@@ -53,11 +59,13 @@ async function fetchDataUrlForLatestFiling(): Promise<string> {
   return tableMatch[1];
 }
 
-async function fetchPositionsFrom13fInfo(): Promise<{
+async function fetchPositionsFrom13fInfo(
+  filingPath: string,
+): Promise<{
   positions: Position[];
   totalValueThousands?: number;
 }> {
-  const dataPath = await fetchDataUrlForLatestFiling();
+  const dataPath = await fetchDataUrlForFiling(filingPath);
   const dataUrl = dataPath.startsWith('http')
     ? dataPath
     : `${BASE_URL}${dataPath}`;
@@ -101,13 +109,41 @@ async function fetchPositionsFrom13fInfo(): Promise<{
 }
 
 async function main() {
-  const { positions, totalValueThousands } = await fetchPositionsFrom13fInfo();
+  const filingPaths = await fetchFilingPaths();
+  const latestPath = filingPaths[0];
+  const lastQuarterPath = filingPaths[1];
+
+  const { positions: latestPositions, totalValueThousands: latestTotal } =
+    await fetchPositionsFrom13fInfo(latestPath);
   await writeFile(
-    DATA_FILE,
-    JSON.stringify({ totalValueThousands, positions }, null, 2),
+    LATEST_FILE,
+    JSON.stringify(
+      { totalValueThousands: latestTotal, positions: latestPositions },
+      null,
+      2,
+    ),
     'utf8',
   );
-  console.log(`Saved ${positions.length} positions to ${DATA_FILE}`);
+  console.log(`Saved ${latestPositions.length} positions to ${LATEST_FILE}`);
+
+  if (lastQuarterPath) {
+    const {
+      positions: lastPositions,
+      totalValueThousands: lastTotal,
+    } = await fetchPositionsFrom13fInfo(lastQuarterPath);
+    await writeFile(
+      LAST_QUARTER_FILE,
+      JSON.stringify(
+        { totalValueThousands: lastTotal, positions: lastPositions },
+        null,
+        2,
+      ),
+      'utf8',
+    );
+    console.log(
+      `Saved ${lastPositions.length} positions to ${LAST_QUARTER_FILE}`,
+    );
+  }
 }
 
 main().catch((err) => {

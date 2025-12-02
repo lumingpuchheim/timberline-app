@@ -1,0 +1,59 @@
+{
+  "totalValueThousands": 3230262,
+  "positions": [
+    {
+      "symbol": "GOOGL",
+      "issuer": "ALPHABET INC",
+      "percentage": "19.1",
+      "valueThousands": 618276
+    },
+    {
+      "symbol": "0A2S.IL",
+      "issuer": "PDD HOLDINGS INC",
+      "percentage": "18.9",
+      "valueThousands": 609039
+    },
+    {
+      "symbol": "GOOG",
+      "issuer": "ALPHABET INC",
+      "percentage": "18.5",
+      "valueThousands": 597014
+    },
+    {
+      "symbol": "BAC",
+      "issuer": "BK OF AMERICA CORP",
+      "percentage": "16.7",
+      "valueThousands": 538155
+    },
+    {
+      "symbol": "BRK-B",
+      "issuer": "BERKSHIRE HATHAWAY INC DEL",
+      "percentage": "14",
+      "valueThousands": 451334
+    },
+    {
+      "symbol": "EWBC",
+      "issuer": "EAST WEST BANCORP INC",
+      "percentage": "9.1",
+      "valueThousands": 295542
+    },
+    {
+      "symbol": "OXY",
+      "issuer": "OCCIDENTAL PETE CORP",
+      "percentage": "2.1",
+      "valueThousands": 69292
+    },
+    {
+      "symbol": "AAPL",
+      "issuer": "APPLE INC",
+      "percentage": "0.9",
+      "valueThousands": 28162
+    },
+    {
+      "symbol": "SOC",
+      "issuer": "SABLE OFFSHORE CORP",
+      "percentage": "0.7",
+      "valueThousands": 23448
+    }
+  ]
+}
