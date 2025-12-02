@@ -75,12 +75,30 @@ export default function HomeScreen() {
 
         <ThemedView style={[styles.section, styles.firstSection]}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Why this portfolio
+            The problem for most savers
+          </ThemedText>
+          <ThemedText>
+            It is hard to beat inflation when you face thousands of stocks, constant news, and
+            conflicting opinions. Most people either don&apos;t invest at all or end up trading too
+            much and underperforming.
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.divider} />
+
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            What Timberline gives you
           </ThemedText>
           <ThemedText>
             Timberline mirrors the disclosed holdings of Himalaya Capital Management LLC, run by Li
-            Lu, whom Charlie Munger trusted to manage his family&apos;s money. It is a real-money,
-            long-term value portfolio, not a theoretical model.
+            Lu, whom Charlie Munger trusted to manage his family&apos;s money. You see one
+            concentrated, long-term value portfolio instead of a feed of ideas.
+          </ThemedText>
+          <ThemedText style={styles.bulletText}>
+            • Save time – no daily research or screening; check in once per quarter.{'\n'}
+            • Save energy – ignore noise and copy a real investor&apos;s patient decisions.{'\n'}
+            • Stay invested – a simple reference makes it easier to sit still through volatility.
           </ThemedText>
         </ThemedView>
 
@@ -88,29 +106,12 @@ export default function HomeScreen() {
 
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            How it tries to make money
+            How to use this as a private investor
           </ThemedText>
           <ThemedText>
-            • Focus on quality – businesses with strong balance sheets, durable cash flows, and
-            rational, honest management.{'\n'}
-            • Value discipline – paying sensible prices with a margin of safety instead of chasing
-            short-term moves.{'\n'}
-            • Long-term compounding – thinking in years and decades, letting a few good companies do
-            the heavy lifting.
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedView style={styles.divider} />
-
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            How you can use this as a private investor
-          </ThemedText>
-          <ThemedText>
-            Use Timberline as a simple, stable reference: a short list of businesses that a
-            long-term value investor actually owns. You can compare your own ideas to this list,
-            borrow from it when you don&apos;t have time to research, and avoid the stress of
-            constant trading by checking in only when the portfolio updates each quarter.
+            Use Timberline as your quiet reference: compare your own holdings to this list, borrow
+            from it when you don&apos;t have time to research, and let the quarterly change summary
+            guide adjustments instead of chasing short-term moves.
           </ThemedText>
         </ThemedView>
 
@@ -294,6 +295,10 @@ const styles = StyleSheet.create({
     // Slightly lighter brown for section headings
     color: '#6b3b16',
     fontWeight: '600',
+  },
+  bulletText: {
+    marginTop: 8,
+    color: '#374151',
   },
   divider: {
     height: 1,
