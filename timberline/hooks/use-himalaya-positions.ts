@@ -14,11 +14,19 @@ type Snapshot = {
 
 type State =
   | { status: 'idle' | 'loading' }
-  | { status: 'success'; positions: HimalayaPosition[]; totalValueThousands?: number }
+  | {
+      status: 'success';
+      positions: HimalayaPosition[];
+      totalValueThousands?: number;
+      previousPositions: HimalayaPosition[];
+      previousTotalValueThousands?: number;
+    }
   | { status: 'error'; error: string };
 
 const API_URL =
   'https://timberline-app-emj2.vercel.app/api/himalaya-latest';
+
+const LAST_SNAPSHOT: Snapshot = require('./himalaya-last-quarter.json');
 
 async function fetchLatestPositions(): Promise<Snapshot> {
   const res = await fetch(API_URL);
@@ -52,6 +60,8 @@ export function useHimalayaLatestPositions(): State {
           status: 'success',
           positions: snapshot.positions,
           totalValueThousands: snapshot.totalValueThousands,
+          previousPositions: LAST_SNAPSHOT.positions,
+          previousTotalValueThousands: LAST_SNAPSHOT.totalValueThousands,
         });
       })
       .catch((err: unknown) => {

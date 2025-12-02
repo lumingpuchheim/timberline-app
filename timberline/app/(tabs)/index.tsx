@@ -44,6 +44,23 @@ export default function HomeScreen() {
     return (totalThousands * pctNumber) / 100;
   };
 
+  const getPreviousFor = (
+    symbol: string,
+  ): { percentage: string; valueThousands?: number } | undefined => {
+    if (positionsState.status !== 'success') return undefined;
+    return positionsState.previousPositions.find((q) => q.symbol === symbol);
+  };
+
+  const getRemovedPositions = () => {
+    if (positionsState.status !== 'success') return [];
+    const currentSymbols = new Set(
+      positionsState.positions.map((p) => p.symbol),
+    );
+    return positionsState.previousPositions.filter(
+      (p) => !currentSymbols.has(p.symbol),
+    );
+  };
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -128,19 +145,69 @@ export default function HomeScreen() {
                   p,
                   positionsState.totalValueThousands,
                 );
+                const prev = getPreviousFor(p.symbol);
+                const prevValueThousands = prev
+                  ? derivePositionValueThousands(
+                      prev,
+                      positionsState.previousTotalValueThousands,
+                    )
+                  : undefined;
+                const pctNow = parseFloat(p.percentage.replace('%', '').trim());
+                const pctPrev = prev
+                  ? parseFloat(prev.percentage.replace('%', '').trim())
+                  : NaN;
+                const pctDelta =
+                  Number.isFinite(pctNow) && Number.isFinite(pctPrev)
+                    ? pctNow - pctPrev
+                    : NaN;
+                const valueDeltaThousands =
+                  typeof valueThousands === 'number' &&
+                  typeof prevValueThousands === 'number'
+                    ? valueThousands - prevValueThousands
+                    : undefined;
+
                 return (
                   <ThemedView key={p.symbol} style={styles.tile}>
-                    <ThemedText type="defaultSemiBold" style={styles.symbolText}>
-                      {p.symbol}
-                    </ThemedText>
-                    <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
-                    <ThemedText style={styles.rowValue}>
-                      {formatPercentage(p.percentage)}
-                    </ThemedText>
-                    {typeof valueThousands === 'number' && (
-                      <ThemedText style={styles.valueText}>
-                        {formatTotalValue(valueThousands)}
+                    <ThemedView style={styles.tileHeader}>
+                      <ThemedText
+                        type="defaultSemiBold"
+                        style={styles.symbolText}>
+                        {p.symbol}
                       </ThemedText>
+                      <ThemedText style={styles.rowValue}>
+                        {formatPercentage(p.percentage)}
+                      </ThemedText>
+                    </ThemedView>
+                    <ThemedView style={styles.tileSubHeader}>
+                      <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
+                      {typeof valueThousands === 'number' && (
+                        <ThemedText style={styles.valueText}>
+                          {formatTotalValue(valueThousands)}
+                        </ThemedText>
+                      )}
+                    </ThemedView>
+                    {positionsState.status === 'success' && (
+                      <>
+                        {Number.isFinite(pctDelta) && (
+                          <ThemedText style={styles.deltaText}>
+                            {pctDelta > 0 ? '+' : ''}
+                            {pctDelta.toFixed(1)}% vs. last quarter
+                          </ThemedText>
+                        )}
+                        {typeof valueDeltaThousands === 'number' &&
+                          Math.abs(valueDeltaThousands) > 0 && (
+                            <ThemedText style={styles.deltaText}>
+                              {valueDeltaThousands > 0 ? '+' : '-'}
+                              {formatTotalValue(Math.abs(valueDeltaThousands))}
+                              {' value vs. last quarter'}
+                            </ThemedText>
+                          )}
+                        {!prev && (
+                          <ThemedText style={styles.addedText}>
+                            Added this quarter
+                          </ThemedText>
+                        )}
+                      </>
                     )}
                   </ThemedView>
                 );
@@ -148,6 +215,39 @@ export default function HomeScreen() {
             </ThemedView>
           )}
         </ThemedView>
+
+        {positionsState.status === 'success' && (
+          <ThemedView style={styles.section}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Exited positions since last quarter
+            </ThemedText>
+            {getRemovedPositions().length === 0 && (
+              <ThemedText style={styles.asOfText}>
+                No positions were fully exited compared to last quarter.
+              </ThemedText>
+            )}
+            {getRemovedPositions().map((p) => {
+              const prevValueThousands = derivePositionValueThousands(
+                p,
+                positionsState.previousTotalValueThousands,
+              );
+              return (
+                <ThemedView key={p.symbol} style={styles.removedRow}>
+                  <ThemedText type="defaultSemiBold" style={styles.symbolText}>
+                    {p.symbol}
+                  </ThemedText>
+                  <ThemedText style={styles.issuerText}>{p.issuer}</ThemedText>
+                  <ThemedText style={styles.removedDetail}>
+                    Was {formatPercentage(p.percentage)}
+                    {typeof prevValueThousands === 'number' &&
+                      ` (${formatTotalValue(prevValueThousands)} value)`}{' '}
+                    – exited this quarter
+                  </ThemedText>
+                </ThemedView>
+              );
+            })}
+          </ThemedView>
+        )}
 
         <ThemedView style={styles.footer}>
           <ThemedText style={styles.footerText}>
@@ -217,15 +317,25 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: '48%',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 6,
-    gap: 2,
+    gap: 4,
   },
   symbolText: {
     color: '#111827',
+  },
+  tileHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  tileSubHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   rowValue: {
     minWidth: 64,
@@ -238,6 +348,24 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 12,
     color: '#374151',
+  },
+  deltaText: {
+    fontSize: 11,
+    color: '#4b5563',
+  },
+  addedText: {
+    fontSize: 11,
+    color: '#14532d',
+  },
+  removedRow: {
+    marginTop: 8,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  removedDetail: {
+    fontSize: 12,
+    color: '#4b5563',
   },
   issuerText: {
     fontSize: 12,
