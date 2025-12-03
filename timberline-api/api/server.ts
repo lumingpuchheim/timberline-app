@@ -28,27 +28,27 @@ app.get('/himalaya-latest', async (_req: any, res: any) => {
 });
 
 // Push token management routes (same behavior as on Vercel).
-app.post('/api/add-token', (req, res) => {
+app.post('/api/add-token', (req: any, res: any) => {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   addTokenHandler(req, res);
 });
 
-app.delete('/api/token/:id', (req, res) => {
+app.delete('/api/token/:id', (req: any, res: any) => {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   deleteTokenHandler(req, res);
 });
 
-app.delete('/api/tokens/all', (req, res) => {
+app.delete('/api/tokens/all', (req: any, res: any) => {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   deleteAllTokensHandler(req, res);
 });
 
-app.get('/api/tokens/count', (req, res) => {
+app.get('/api/tokens/count', (req: any, res: any) => {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   tokensCountHandler(req, res);
 });
 
-app.get('/api/tokens', (req, res) => {
+app.get('/api/tokens', (req: any, res: any) => {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   tokensListHandler(req, res);
 });
