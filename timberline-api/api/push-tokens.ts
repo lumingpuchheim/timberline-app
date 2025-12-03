@@ -249,4 +249,29 @@ export async function tokensListHandler(req: any, res: any) {
   }
 }
 
+// Default export for Vercel serverless function.
+// Route: /api/push-tokens
+// - POST   → addTokenHandler         (public)
+// - GET    → tokensListHandler       (admin, returns full list)
+// - DELETE → deleteAllTokensHandler  (admin, delete all)
+export default async function handler(req: any, res: any) {
+  if (req.method === 'POST') {
+    await addTokenHandler(req, res);
+    return;
+  }
+
+  if (req.method === 'GET') {
+    await tokensListHandler(req, res);
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    await deleteAllTokensHandler(req, res);
+    return;
+  }
+
+  setCors(res);
+  res.status(405).json({ error: 'Method not allowed' });
+}
+
 
