@@ -1,8 +1,17 @@
 import express from 'express';
 import { fetchLatestSnapshot } from './himalaya-latest';
+import {
+  addTokenHandler,
+  deleteAllTokensHandler,
+  deleteTokenHandler,
+  tokensCountHandler,
+  tokensListHandler,
+} from './push-tokens';
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
+
+app.use(express.json());
 
 app.get('/himalaya-latest', async (_req: any, res: any) => {
   try {
@@ -18,8 +27,33 @@ app.get('/himalaya-latest', async (_req: any, res: any) => {
   }
 });
 
+// Push token management routes (same behavior as on Vercel).
+app.post('/api/add-token', (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  addTokenHandler(req, res);
+});
+
+app.delete('/api/token/:id', (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  deleteTokenHandler(req, res);
+});
+
+app.delete('/api/tokens/all', (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  deleteAllTokensHandler(req, res);
+});
+
+app.get('/api/tokens/count', (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  tokensCountHandler(req, res);
+});
+
+app.get('/api/tokens', (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  tokensListHandler(req, res);
+});
+
 app.listen(PORT, () => {
   console.log(`Timberline API listening on http://localhost:${PORT}`);
 });
-
 
