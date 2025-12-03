@@ -1,4 +1,4 @@
-import '../load-local-env';
+import '../api/load-local-env';
 import express from 'express';
 import {
   addTokenHandler,

@@ -1,4 +1,4 @@
-import '../load-local-env';
+import './load-local-env';
 import { kv } from '@vercel/kv';
 
 type StoredToken = {
