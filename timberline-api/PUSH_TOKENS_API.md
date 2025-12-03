@@ -135,7 +135,7 @@ Expected response: `204 No Content`.
 
 ---
 
-### 5. Quick manual test flow
+### 5. Quick manual test flow (local)
 
 1. **Start server**:
 
@@ -163,4 +163,41 @@ Expected response: `204 No Content`.
    curl -X DELETE "http://localhost:4000/api/tokens/all" -H "X-Admin-Api-Key: your-very-secret-admin-key"
    ```
 
+---
+
+### 6. Testing the API on Vercel
+
+The same handlers are deployed as a serverless function on Vercel at:
+
+- Base URL: `https://timberline-app-emj2.vercel.app/api/push-tokens`
+
+#### 6.1 Add a token (public)
+
+- **Method**: `POST`
+- **URL**: `https://timberline-app-emj2.vercel.app/api/push-tokens`
+- **Auth**: none (public)
+
+```bash
+curl -X POST "https://timberline-app-emj2.vercel.app/api/push-tokens" -H "Content-Type: application/json" -d '{"token":"ExponentPushToken[TEST-1234567890]","platform":"android"}'
+```
+
+#### 6.2 List all tokens (admin only)
+
+- **Method**: `GET`
+- **URL**: `https://timberline-app-emj2.vercel.app/api/push-tokens`
+- **Auth**: header `X-Admin-Api-Key: <your ADMIN_API_KEY>`
+
+```bash
+curl -X GET "https://timberline-app-emj2.vercel.app/api/push-tokens" -H "X-Admin-Api-Key: your-very-secret-admin-key"
+```
+
+#### 6.3 Delete all tokens (admin only)
+
+- **Method**: `DELETE`
+- **URL**: `https://timberline-app-emj2.vercel.app/api/push-tokens`
+- **Auth**: header `X-Admin-Api-Key: <your ADMIN_API_KEY>`
+
+```bash
+curl -X DELETE "https://timberline-app-emj2.vercel.app/api/push-tokens" -H "X-Admin-Api-Key: your-very-secret-admin-key"
+```
 
