@@ -1,5 +1,5 @@
 import './load-local-env';
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 
 type StoredToken = {
   token: string;
@@ -9,22 +9,33 @@ type StoredToken = {
 
 const TOKENS_SET_KEY = 'timberline:pushTokens';
 
-// When KV environment variables are not set (local tests), fall back to
-// an in-memory store so the API can still be exercised without errors.
-const hasKvConfig =
+// When Upstash/Vercel KV environment variables are not set (local tests),
+// fall back to an in-memory store so the API can still be exercised
+// without errors.
+//
+// On Vercel, the Upstash KV integration exposes KV-style env vars:
+//   KV_REST_API_URL, KV_REST_API_TOKEN
+const hasRedisConfig =
   !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
+
+const redis = hasRedisConfig
+  ? new Redis({
+      url: process.env.KV_REST_API_URL as string,
+      token: process.env.KV_REST_API_TOKEN as string,
+    })
+  : null;
 const memoryTokens = new Map<string, StoredToken>();
 
 async function listTokens(): Promise<StoredToken[]> {
-  if (!hasKvConfig) {
+  if (!hasRedisConfig || !redis) {
     return Array.from(memoryTokens.values());
   }
 
-  const tokenStrings = (await kv.smembers(TOKENS_SET_KEY)) as string[];
+  const tokenStrings = (await redis.smembers(TOKENS_SET_KEY)) as string[];
 
   const tokensRaw = await Promise.all(
     tokenStrings.map((t) =>
-      kv.hgetall(`timberline:pushToken:${t}`) as Promise<StoredToken | null>,
+      redis.get<StoredToken>(`timberline:pushToken:${t}`),
     ),
   );
 
@@ -33,38 +44,38 @@ async function listTokens(): Promise<StoredToken[]> {
 }
 
 async function saveToken(record: StoredToken): Promise<void> {
-  if (!hasKvConfig) {
+  if (!hasRedisConfig || !redis) {
     memoryTokens.set(record.token, record);
     return;
   }
 
-  await kv.hset(`timberline:pushToken:${record.token}`, record);
-  await kv.sadd(TOKENS_SET_KEY, record.token);
+  await redis.set(`timberline:pushToken:${record.token}`, record);
+  await redis.sadd(TOKENS_SET_KEY, record.token);
 }
 
 async function deleteTokenById(token: string): Promise<void> {
-  if (!hasKvConfig) {
+  if (!hasRedisConfig || !redis) {
     memoryTokens.delete(token);
     return;
   }
 
-  await kv.del(`timberline:pushToken:${token}`);
-  await kv.srem(TOKENS_SET_KEY, token);
+  await redis.del(`timberline:pushToken:${token}`);
+  await redis.srem(TOKENS_SET_KEY, token);
 }
 
 async function clearTokens(): Promise<void> {
-  if (!hasKvConfig) {
+  if (!hasRedisConfig || !redis) {
     memoryTokens.clear();
     return;
   }
 
-  const tokenStrings = (await kv.smembers(TOKENS_SET_KEY)) as string[];
+  const tokenStrings = (await redis.smembers(TOKENS_SET_KEY)) as string[];
 
-  if (tokenStrings.length > 0) {
+  if (tokenStrings.length > 0 && redis) {
     await Promise.all(
-      tokenStrings.map((t) => kv.del(`timberline:pushToken:${t}`)),
+      tokenStrings.map((t) => redis.del(`timberline:pushToken:${t}`)),
     );
-    await kv.del(TOKENS_SET_KEY);
+    await redis.del(TOKENS_SET_KEY);
   }
 }
 
