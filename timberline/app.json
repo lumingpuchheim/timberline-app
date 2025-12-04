@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ming2345.timberline",
+      "package": "io.timberline.app",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -46,6 +46,7 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
+    "owner": "ming2345",
     "extra": {
       "router": {},
       "eas": {
