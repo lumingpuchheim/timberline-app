@@ -1,5 +1,6 @@
 import { Platform, ScrollView, StyleSheet } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
@@ -80,14 +81,52 @@ export default function HomeScreen() {
       return;
     }
 
+    const PUSH_TOKEN_REGISTERED_KEY = 'pushTokenRegisteredV1';
+
     (async () => {
       try {
-        const settings = await Notifications.getPermissionsAsync();
-        if (!settings.granted) {
-          await Notifications.requestPermissionsAsync();
+        // Only register once per install.
+        const alreadyRegistered = await SecureStore.getItemAsync(
+          PUSH_TOKEN_REGISTERED_KEY,
+        );
+        if (alreadyRegistered === 'yes') {
+          return;
         }
+
+        const settings = await Notifications.getPermissionsAsync();
+        let granted = settings.granted;
+        if (!granted) {
+          const requestResult = await Notifications.requestPermissionsAsync();
+          granted = requestResult.granted;
+        }
+        if (!granted) {
+          return;
+        }
+
         const tokenData = await Notifications.getExpoPushTokenAsync();
         setExpoPushToken(tokenData.data);
+
+        // Register this device with the backend on Vercel.
+        try {
+          const res = await fetch(
+            'https://timberline-app-emj2.vercel.app/api/push-tokens',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                token: tokenData.data,
+                platform: Platform.OS,
+              }),
+            },
+          );
+          if (res.ok || res.status === 204) {
+            await SecureStore.setItemAsync(PUSH_TOKEN_REGISTERED_KEY, 'yes');
+          }
+        } catch (e) {
+          console.warn('Failed to register push token with backend', e);
+        }
       } catch (e) {
         console.warn('Failed to initialize notifications', e);
       }
