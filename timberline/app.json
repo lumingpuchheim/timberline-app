@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ming2345.timberline"
+      "package": "com.ming2345.timberline",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
