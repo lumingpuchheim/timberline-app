@@ -54,17 +54,20 @@ jobs:
           echo "Raw tokens JSON:"
           echo "$TOKENS_JSON"
 
-          TOKENS=$(echo "$TOKENS_JSON" | jq -r '.tokens[].token // empty')
+          TOKEN_COUNT=$(echo "$TOKENS_JSON" | jq '.tokens | length')
 
-          if [ -z "$TOKENS" ]; then
+          if [ "$TOKEN_COUNT" -eq 0 ]; then
             echo "No tokens found. Nothing to notify."
             exit 0
           fi
 
-          echo "Found tokens:"
-          echo "$TOKENS"
+          echo "Found $TOKEN_COUNT token(s)"
 
-          for TOKEN in $TOKENS; do
+          echo "$TOKENS_JSON" | jq -r '.tokens[].token' | while IFS= read -r TOKEN; do
+            if [ -z "$TOKEN" ]; then
+              continue
+            fi
+
             echo "Sending notification to $TOKEN"
 
             BODY=$(jq -n \
