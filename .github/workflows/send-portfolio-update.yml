@@ -1,0 +1,63 @@
+name: Send Timberline portfolio update notification
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-portfolio-update:
+    runs-on: ubuntu-latest
+    env:
+      ADMIN_API_KEY: ${{ secrets.TIMBERLINE_ADMIN_API_KEY }}
+    steps:
+      - name: Fetch all registered push tokens from backend
+        id: fetch_tokens
+        run: |
+          if [ -z "$ADMIN_API_KEY" ]; then
+            echo "ADMIN_API_KEY GitHub secret (TIMBERLINE_ADMIN_API_KEY) is not set."
+            exit 1
+          fi
+
+          TOKENS_JSON=$(curl -s -X GET "https://timberline-app-emj2.vercel.app/api/push-tokens" \
+            -H "X-Admin-Api-Key: $ADMIN_API_KEY")
+
+          echo "Raw tokens JSON:"
+          echo "$TOKENS_JSON"
+
+          TOKENS=$(echo "$TOKENS_JSON" | jq -r '.tokens[].token // empty')
+
+          if [ -z "$TOKENS" ]; then
+            echo "No tokens found. Nothing to notify."
+            echo "has_tokens=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Found tokens:"
+          echo "$TOKENS"
+
+          # Save tokens as a space-separated string for the next step
+          echo "tokens=$TOKENS" >> "$GITHUB_OUTPUT"
+          echo "has_tokens=true" >> "$GITHUB_OUTPUT"
+
+      - name: Send Expo push notification to all tokens
+        if: steps.fetch_tokens.outputs.has_tokens == 'true'
+        run: |
+          TOKENS="${{ steps.fetch_tokens.outputs.tokens }}"
+
+          for TOKEN in $TOKENS; do
+            echo "Sending notification to $TOKEN"
+
+            BODY=$(jq -n \
+              --arg to "$TOKEN" \
+              --arg title "New Timberline portfolio update" \
+              --arg body "Portfolio update available. Open Timberline to see what changed." \
+              '{to: $to, sound: "default", title: $title, body: $body, data: {source: "github-action", intent: "portfolio-update"}}')
+
+            curl -s -X POST https://exp.host/--/api/v2/push/send \
+              -H "Content-Type: application/json" \
+              -H "Accept: application/json" \
+              -d "$BODY"
+
+            echo ""
+          done
+
+
