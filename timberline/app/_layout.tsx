@@ -49,7 +49,7 @@ export default function RootLayout() {
         await new Promise<void>((resolve) => {
           Alert.alert(
             'Stay in the loop',
-            'We’ll notify you about portfolio changes so you can relax and let us update you.',
+            'Please allow notifications so you can relax and wait. We\'ll notify you about portfolio changes once per quarter.',
             [{ text: 'OK', onPress: () => resolve() }],
             { cancelable: false },
           );
