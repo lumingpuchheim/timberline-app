@@ -1,25 +1,11 @@
-import { Platform, ScrollView, StyleSheet } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useHimalayaLatestPositions } from '@/hooks/use-himalaya-positions';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
 export default function HomeScreen() {
   const positionsState = useHimalayaLatestPositions();
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
   const topPositions =
     positionsState.status === 'success'
@@ -74,64 +60,6 @@ export default function HomeScreen() {
       (p) => !currentSymbols.has(p.symbol),
     );
   };
-
-  useEffect(() => {
-    // Notifications are only supported on native platforms; guard and be defensive.
-    if (Platform.OS === 'web') {
-      return;
-    }
-
-    const PUSH_TOKEN_REGISTERED_KEY = 'pushTokenRegisteredV1';
-
-    (async () => {
-      try {
-        // Only register once per install.
-        const alreadyRegistered = await SecureStore.getItemAsync(
-          PUSH_TOKEN_REGISTERED_KEY,
-        );
-        if (alreadyRegistered === 'yes') {
-          return;
-        }
-
-        const settings = await Notifications.getPermissionsAsync();
-        let granted = settings.granted;
-        if (!granted) {
-          const requestResult = await Notifications.requestPermissionsAsync();
-          granted = requestResult.granted;
-        }
-        if (!granted) {
-          return;
-        }
-
-        const tokenData = await Notifications.getExpoPushTokenAsync();
-        setExpoPushToken(tokenData.data);
-
-        // Register this device with the backend on Vercel.
-        try {
-          const res = await fetch(
-            'https://timberline-app-emj2.vercel.app/api/push-tokens',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                token: tokenData.data,
-                platform: Platform.OS,
-              }),
-            },
-          );
-          if (res.ok || res.status === 204) {
-            await SecureStore.setItemAsync(PUSH_TOKEN_REGISTERED_KEY, 'yes');
-          }
-        } catch (e) {
-          console.warn('Failed to register push token with backend', e);
-        }
-      } catch (e) {
-        console.warn('Failed to initialize notifications', e);
-      }
-    })();
-  }, []);
 
   return (
     <ThemedView style={styles.screen}>
